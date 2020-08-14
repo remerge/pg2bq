@@ -32,9 +32,11 @@ class BigQueryImporter(
 
     val job = bigquery.create(JobInfo.newBuilder(configuration).build())
 
-    logger.info(s"Importing $tableName from bucket $tmpBucket/$bucketFolderName to dataset $dataset...")
+    logger.info(
+      s"Importing \"$tableName\" from the folder \"$bucketFolderName\" in the bucket " +
+        s"\"$tmpBucket\" to dataset $dataset...")
     job.waitFor()
-    logger.info(s"$tableName import done!")
+    logger.info(s"\"$tableName\" import done!")
   }
 
   private def saveIntoGcs(df: DataFrame, tableName: String): Unit = {
@@ -47,12 +49,12 @@ class BigQueryImporter(
   def getOrCreateDataset(datasetName: String): Dataset = {
     scala.Option(bigquery.getDataset(datasetName)) match {
       case Some(ds) =>
-        logger.info(s"Dataset $datasetName already exist.")
+        logger.info(s"Dataset \"$datasetName\" already exist.")
         ds
       case None =>
-        logger.info(s"Dataset $datasetName does not exist, creating...")
+        logger.info(s"Dataset \"$datasetName\" does not exist, creating...")
         val ds = bigquery.create(DatasetInfo.of(datasetName))
-        logger.info(s"Dataset $datasetName created!")
+        logger.info(s"Dataset \"$datasetName\" created!")
         ds
     }
   }
