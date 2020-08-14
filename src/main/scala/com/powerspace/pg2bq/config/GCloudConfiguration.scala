@@ -12,5 +12,6 @@ case class BigQueryConfiguration(
 )
 
 case class GcsConfiguration(
-    tmpBucket: String
+    tmpBucket: String,
+    tmpBucketFolder: String
 )

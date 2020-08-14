@@ -3,9 +3,15 @@ package com.powerspace.pg2bq
 import com.google.cloud.bigquery.JobInfo.WriteDisposition
 import com.google.cloud.bigquery._
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode}
 
-class BigQueryImporter(spark: SparkSession, tmpBucket: String, dataset: String) extends LazyLogging with DataImporter {
+class BigQueryImporter(
+    tmpBucket: String,
+    tmpBucketFolder: String,
+    dataset: String,
+) extends LazyLogging
+    with DataImporter {
+  val bucketFolderName: String = scala.Option(tmpBucketFolder).getOrElse("pg2bq")
 
   val bigquery: BigQuery = BigQueryOptions.getDefaultInstance.getService
 
@@ -19,14 +25,14 @@ class BigQueryImporter(spark: SparkSession, tmpBucket: String, dataset: String) 
 
   private def loadFromGcsToBq(tableName: String): Unit = {
     val configuration = LoadJobConfiguration
-      .builder(TableId.of(dataset, tableName), s"gs://$tmpBucket/$tableName/*.avro")
+      .builder(TableId.of(dataset, tableName), s"gs://$tmpBucket/$bucketFolderName/$tableName/*.avro")
       .setFormatOptions(FormatOptions.avro())
       .setWriteDisposition(WriteDisposition.WRITE_TRUNCATE)
       .build()
 
     val job = bigquery.create(JobInfo.newBuilder(configuration).build())
 
-    logger.info(s"Importing $tableName from bucket $tmpBucket to dataset $dataset...")
+    logger.info(s"Importing $tableName from bucket $tmpBucket/$bucketFolderName to dataset $dataset...")
     job.waitFor()
     logger.info(s"$tableName import done!")
   }
@@ -35,7 +41,7 @@ class BigQueryImporter(spark: SparkSession, tmpBucket: String, dataset: String) 
     df.write
       .mode(SaveMode.Overwrite)
       .format("com.databricks.spark.avro")
-      .save(s"gs://$tmpBucket/$tableName")
+      .save(s"gs://$tmpBucket/$bucketFolderName/$tableName")
   }
 
   def getOrCreateDataset(datasetName: String): Dataset = {
