@@ -7,11 +7,11 @@ import org.apache.spark.sql.{DataFrame, SaveMode}
 
 class BigQueryImporter(
     tmpBucket: String,
-    tmpBucketFolder: String,
+    tmpBucketFolder: scala.Option[String],
     dataset: String,
 ) extends LazyLogging
     with DataImporter {
-  val bucketFolderName: String = scala.Option(tmpBucketFolder).getOrElse("pg2bq")
+  val bucketFolderName: String = tmpBucketFolder.getOrElse("pg2bq")
 
   val bigquery: BigQuery = BigQueryOptions.getDefaultInstance.getService
 

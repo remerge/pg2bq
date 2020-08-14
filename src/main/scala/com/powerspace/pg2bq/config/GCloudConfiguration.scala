@@ -13,5 +13,5 @@ case class BigQueryConfiguration(
 
 case class GcsConfiguration(
     tmpBucket: String,
-    tmpBucketFolder: String
+    tmpBucketFolder: scala.Option[String]
 )
